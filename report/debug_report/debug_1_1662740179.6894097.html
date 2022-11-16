@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 12px;
+	/* do not increase min-width as some may use split screens */
+	min-width: 800px;
+	color: #999;
+}
+
+h1 {
+	font-size: 24px;
+	color: black;
+}
+
+h2 {
+	font-size: 16px;
+	color: black;
+}
+
+p {
+    color: black;
+}
+
+a {
+	color: #999;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+
+#environment td {
+	padding: 5px;
+	border: 1px solid #E6E6E6;
+}
+
+#environment tr:nth-child(odd) {
+	background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed, .passed .col-result {
+	color: green;
+}
+span.skipped, span.xfailed, span.rerun, .skipped .col-result, .xfailed .col-result, .rerun .col-result {
+	color: orange;
+}
+span.error, span.failed, span.xpassed, .error .col-result, .failed .col-result, .xpassed .col-result  {
+	color: red;
+}
+
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+
+#results-table {
+	border: 1px solid #e6e6e6;
+	color: #999;
+	font-size: 12px;
+	width: 100%
+}
+
+#results-table th, #results-table td {
+	padding: 5px;
+	border: 1px solid #E6E6E6;
+	text-align: left
+}
+#results-table th {
+	font-weight: bold
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+
+.log:only-child {
+	height: inherit
+}
+.log {
+	background-color: #e6e6e6;
+	border: 1px solid #e6e6e6;
+	color: black;
+	display: block;
+	font-family: "Courier New", Courier, monospace;
+	height: 230px;
+	overflow-y: scroll;
+	padding: 5px;
+	white-space: pre-wrap
+}
+div.image {
+	border: 1px solid #e6e6e6;
+	float: right;
+	height: 240px;
+	margin-left: 5px;
+	overflow: hidden;
+	width: 320px
+}
+div.image img {
+	width: 320px
+}
+div.video {
+	border: 1px solid #e6e6e6;
+	float: right;
+	height: 240px;
+	margin-left: 5px;
+	overflow: hidden;
+	width: 320px
+}
+div.video video {
+	overflow: hidden;
+	width: 320px;
+    height: 240px;
+}
+.collapsed {
+	display: none;
+}
+.expander::after {
+	content: " (show details)";
+	color: #BBB;
+	font-style: italic;
+	cursor: pointer;
+}
+.collapser::after {
+	content: " (hide details)";
+	color: #BBB;
+	font-style: italic;
+	cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+	cursor: pointer;
+}
+
+.sort-icon {
+	font-size: 0px;
+	float: left;
+	margin-right: 5px;
+	margin-top: 5px;
+	/*triangle*/
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+}
+
+.inactive .sort-icon {
+	/*finish triangle*/
+	border-top: 8px solid #E6E6E6;
+}
+
+.asc.active .sort-icon {
+	/*finish triangle*/
+	border-bottom: 8px solid #999;
+}
+
+.desc.active .sort-icon {
+	/*finish triangle*/
+	border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function find_all(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sort_column(elem) {
+    toggle_sort_states(elem);
+    var colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    var key;
+    if (elem.classList.contains('numeric')) {
+        key = key_num;
+    } else if (elem.classList.contains('result')) {
+        key = key_result;
+    } else {
+        key = key_alpha;
+    }
+    sort_table(elem, key(colIndex));
+}
+
+function show_all_extras() {
+    find_all('.col-result').forEach(show_extras);
+}
+
+function hide_all_extras() {
+    find_all('.col-result').forEach(hide_extras);
+}
+
+function show_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.remove("collapsed");
+    expandcollapse.classList.remove("expander");
+    expandcollapse.classList.add("collapser");
+}
+
+function hide_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.add("collapsed");
+    expandcollapse.classList.remove("collapser");
+    expandcollapse.classList.add("expander");
+}
+
+function show_filters() {
+    var filter_items = document.getElementsByClassName('filter');
+    for (var i = 0; i < filter_items.length; i++)
+        filter_items[i].hidden = false;
+}
+
+function add_collapse() {
+    // Add links for show/hide all
+    var resulttable = find('table#results-table');
+    var showhideall = document.createElement("p");
+    showhideall.innerHTML = '<a href="javascript:show_all_extras()">Show all details</a> / ' +
+                            '<a href="javascript:hide_all_extras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    find_all('.col-result').forEach(function(elem) {
+        var collapsed = get_query_parameter('collapsed') || 'Passed';
+        var extras = elem.parentNode.nextElementSibling;
+        var expandcollapse = document.createElement("span");
+        if (extras.classList.contains("collapsed")) {
+            expandcollapse.classList.add("expander")
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add("collapsed");
+            expandcollapse.classList.add("expander");
+        } else {
+            expandcollapse.classList.add("collapser");
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener("click", function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains("collapsed")) {
+                show_extras(event.currentTarget);
+            } else {
+                hide_extras(event.currentTarget);
+            }
+        });
+    })
+}
+
+function get_query_parameter(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () {
+    reset_sort_headers();
+
+    add_collapse();
+
+    show_filters();
+
+    sort_column(find('.initial-sort'));
+
+    find_all('.sortable').forEach(function(elem) {
+        elem.addEventListener("click",
+                              function(event) {
+                                  sort_column(elem);
+                              }, false)
+    });
+
+};
+
+function sort_table(clicked, key_func) {
+    var rows = find_all('.results-table-row');
+    var reversed = !clicked.classList.contains('asc');
+    var sorted_rows = sort(rows, key_func, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    var thead = document.getElementById("results-table-head");
+    document.getElementById('results-table').remove();
+    var parent = document.createElement("table");
+    parent.id = "results-table";
+    parent.appendChild(thead);
+    sorted_rows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName("BODY")[0].appendChild(parent);
+}
+
+function sort(items, key_func, reversed) {
+    var sort_array = items.map(function(item, i) {
+        return [key_func(item), i];
+    });
+
+    sort_array.sort(function(a, b) {
+        var key_a = a[0];
+        var key_b = b[0];
+
+        if (key_a == key_b) return 0;
+
+        if (reversed) {
+            return (key_a < key_b ? 1 : -1);
+        } else {
+            return (key_a > key_b ? 1 : -1);
+        }
+    });
+
+    return sort_array.map(function(item) {
+        var index = item[1];
+        return items[index];
+    });
+}
+
+function key_alpha(col_index) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[col_index].firstChild.data.toLowerCase();
+    };
+}
+
+function key_num(col_index) {
+    return function(elem) {
+        return parseFloat(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function key_result(col_index) {
+    return function(elem) {
+        var strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+                       'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function reset_sort_headers() {
+    find_all('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    find_all('.sortable').forEach(function(elem) {
+        var icon = document.createElement("div");
+        icon.className = "sort-icon";
+        icon.textContent = "vvv";
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove("desc", "active");
+        elem.classList.add("asc", "inactive");
+    });
+}
+
+function toggle_sort_states(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        reset_sort_headers();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function is_all_rows_hidden(value) {
+  return value.hidden == false;
+}
+
+function filter_table(elem) {
+    var outcome_att = "data-test-result";
+    var outcome = elem.getAttribute(outcome_att);
+    class_outcome = outcome + " results-table-row";
+    var outcome_rows = document.getElementsByClassName(class_outcome);
+
+    for(var i = 0; i < outcome_rows.length; i++){
+        outcome_rows[i].hidden = !elem.checked;
+    }
+
+    var rows = find_all('.results-table-row').filter(is_all_rows_hidden);
+    var all_rows_hidden = rows.length == 0 ? true : false;
+    var not_found_message = document.getElementById("not-found-message");
+    not_found_message.hidden = !all_rows_hidden;
+}
+</script>
+    <h1>debug_1_1662740179.6894097.html</h1>
+    <p>Report generated on 10-Sep-2022 at 00:16:22 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "0.13.1", "py": "1.11.0", "pytest": "5.4.3"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Linux-5.4.0-125-generic-x86_64-with-Ubuntu-18.04-bionic</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"allure-pytest": "2.9.45", "html": "2.1.1", "metadata": "1.11.0"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.6.9</td></tr></table>
+    <h2>Summary</h2>
+    <p>1 tests ran in 1.67 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">1 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable numeric" col="duration">Duration</th>
+          <th>Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">apitest/httprunner_api_test/testcases/debug_1_test1231_test.py::TestCaseDebug1Test1231::test_start</td>
+          <td class="col-duration">1.59</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> ------------------------------Captured stderr call------------------------------ <br/>[32m2022-09-10 00:16:20.722[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36mtest_start[0m:[36m451[0m - [1mStart to run testcase: request methods testcase with functions, TestCase ID: 512bd1f3-1a25-4fb5-9734-de8edadaa539[0m
+[32m2022-09-10 00:16:20.723[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36m__run_step[0m:[36m292[0m - [1mrun step begin: get with params &gt;&gt;&gt;&gt;&gt;&gt;[0m
+[32m2022-09-10 00:16:21.790[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m186[0m - [34m[1mclient IP: 192.168.0.200, Port: 50038[0m
+[32m2022-09-10 00:16:21.790[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m194[0m - [34m[1mserver IP: 34.231.142.5, Port: 443[0m
+[32m2022-09-10 00:16:21.791[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mlog_print[0m:[36m40[0m - [34m[1m
+================== request details ==================
+method   : GET
+url      : https://postman-echo.com/get?foo1=bar11&amp;foo2=bar21&amp;sum_v=3
+headers  : {
+    &quot;User-Agent&quot;: &quot;HttpRunner/3.1.6&quot;,
+    &quot;Accept-Encoding&quot;: &quot;gzip, deflate, br&quot;,
+    &quot;Accept&quot;: &quot;*/*&quot;,
+    &quot;Connection&quot;: &quot;keep-alive&quot;,
+    &quot;HRUN-Request-ID&quot;: &quot;HRUN-512bd1f3-1a25-4fb5-9734-de8edadaa539-180724&quot;
+}
+cookies  : {}
+body     : None
+[0m
+[32m2022-09-10 00:16:21.792[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mlog_print[0m:[36m40[0m - [34m[1m
+================== response details ==================
+status_code : 200
+headers  : {
+    &quot;Date&quot;: &quot;Fri, 09 Sep 2022 16:16:21 GMT&quot;,
+    &quot;Content-Type&quot;: &quot;application/json; charset=utf-8&quot;,
+    &quot;Content-Length&quot;: &quot;425&quot;,
+    &quot;Connection&quot;: &quot;keep-alive&quot;,
+    &quot;ETag&quot;: &quot;W/\&quot;1a9-twiCt3XwUTgjDh5B7pUuFSc2sIA\&quot;&quot;,
+    &quot;Vary&quot;: &quot;Accept-Encoding&quot;,
+    &quot;set-cookie&quot;: &quot;sails.sid=s%3ArGy_dEIuPGEiwkehNLx5rDYYRAxNfdxq.xyD0enLpd3kR9JyvyD1NIwsNoSlQluQyIewxvw2se7I; Path=/; HttpOnly&quot;
+}
+cookies  : {
+    &quot;sails.sid&quot;: &quot;s%3ArGy_dEIuPGEiwkehNLx5rDYYRAxNfdxq.xyD0enLpd3kR9JyvyD1NIwsNoSlQluQyIewxvw2se7I&quot;
+}
+encoding : utf-8
+content_type : application/json; charset=utf-8
+body     : {
+    &quot;args&quot;: {
+        &quot;foo1&quot;: &quot;bar11&quot;,
+        &quot;foo2&quot;: &quot;bar21&quot;,
+        &quot;sum_v&quot;: &quot;3&quot;
+    },
+    &quot;headers&quot;: {
+        &quot;x-forwarded-proto&quot;: &quot;https&quot;,
+        &quot;x-forwarded-port&quot;: &quot;443&quot;,
+        &quot;host&quot;: &quot;postman-echo.com&quot;,
+        &quot;x-amzn-trace-id&quot;: &quot;Root=1-631b66d5-57612bd05f2636816ba50aba&quot;,
+        &quot;user-agent&quot;: &quot;HttpRunner/3.1.6&quot;,
+        &quot;accept-encoding&quot;: &quot;gzip, deflate, br&quot;,
+        &quot;accept&quot;: &quot;*/*&quot;,
+        &quot;hrun-request-id&quot;: &quot;HRUN-512bd1f3-1a25-4fb5-9734-de8edadaa539-180724&quot;
+    },
+    &quot;url&quot;: &quot;https://postman-echo.com/get?foo1=bar11&amp;foo2=bar21&amp;sum_v=3&quot;
+}
+[0m
+[32m2022-09-10 00:16:21.793[0m | [1mINFO    [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m218[0m - [1mstatus_code: 200, response_time(ms): 1065.96 ms, response_length: 0 bytes[0m
+[32m2022-09-10 00:16:21.794[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mextract[0m:[36m179[0m - [1mextract mapping: {&#x27;foo3&#x27;: &#x27;bar21&#x27;}[0m
+[32m2022-09-10 00:16:21.795[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert status_code equal 200(int)	==&gt; pass[0m
+[32m2022-09-10 00:16:21.798[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.args.foo1 equal bar11(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:21.798[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.args.sum_v equal 3(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:21.799[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.args.foo2 equal bar21(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:21.799[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36m__run_step[0m:[36m304[0m - [1mrun step end: get with params &lt;&lt;&lt;&lt;&lt;&lt;
+[0m
+[32m2022-09-10 00:16:21.799[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36m__run_step[0m:[36m292[0m - [1mrun step begin: post raw text &gt;&gt;&gt;&gt;&gt;&gt;[0m
+[32m2022-09-10 00:16:22.054[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m186[0m - [34m[1mclient IP: 192.168.0.200, Port: 50038[0m
+[32m2022-09-10 00:16:22.055[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m194[0m - [34m[1mserver IP: 34.231.142.5, Port: 443[0m
+[32m2022-09-10 00:16:22.055[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mlog_print[0m:[36m40[0m - [34m[1m
+================== request details ==================
+method   : POST
+url      : https://postman-echo.com/post
+headers  : {
+    &quot;User-Agent&quot;: &quot;HttpRunner/3.1.6&quot;,
+    &quot;Accept-Encoding&quot;: &quot;gzip, deflate, br&quot;,
+    &quot;Accept&quot;: &quot;*/*&quot;,
+    &quot;Connection&quot;: &quot;keep-alive&quot;,
+    &quot;Content-Type&quot;: &quot;text/plain&quot;,
+    &quot;HRUN-Request-ID&quot;: &quot;HRUN-512bd1f3-1a25-4fb5-9734-de8edadaa539-181800&quot;,
+    &quot;Cookie&quot;: &quot;sails.sid=s%3ArGy_dEIuPGEiwkehNLx5rDYYRAxNfdxq.xyD0enLpd3kR9JyvyD1NIwsNoSlQluQyIewxvw2se7I&quot;,
+    &quot;Content-Length&quot;: &quot;83&quot;
+}
+cookies  : {
+    &quot;sails.sid&quot;: &quot;s%3ArGy_dEIuPGEiwkehNLx5rDYYRAxNfdxq.xyD0enLpd3kR9JyvyD1NIwsNoSlQluQyIewxvw2se7I&quot;
+}
+body     : This is expected to be sent back as part of response body: bar12-config_bar2-bar32.
+[0m
+[32m2022-09-10 00:16:22.056[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mlog_print[0m:[36m40[0m - [34m[1m
+================== response details ==================
+status_code : 200
+headers  : {
+    &quot;Date&quot;: &quot;Fri, 09 Sep 2022 16:16:21 GMT&quot;,
+    &quot;Content-Type&quot;: &quot;application/json; charset=utf-8&quot;,
+    &quot;Content-Length&quot;: &quot;633&quot;,
+    &quot;Connection&quot;: &quot;keep-alive&quot;,
+    &quot;ETag&quot;: &quot;W/\&quot;279-WWWIJO65ZkTKShf96Yv4AjiRko0\&quot;&quot;,
+    &quot;Vary&quot;: &quot;Accept-Encoding&quot;,
+    &quot;set-cookie&quot;: &quot;sails.sid=s%3AOEsj556U62otZ2EWvqOITyMkXZGec06l.iH0U1XVyTHpskzKMrvtX4%2FIVaFndgAPdX3TZGNa19BQ; Path=/; HttpOnly&quot;
+}
+cookies  : {
+    &quot;sails.sid&quot;: &quot;s%3AOEsj556U62otZ2EWvqOITyMkXZGec06l.iH0U1XVyTHpskzKMrvtX4%2FIVaFndgAPdX3TZGNa19BQ&quot;
+}
+encoding : utf-8
+content_type : application/json; charset=utf-8
+body     : {
+    &quot;args&quot;: {},
+    &quot;data&quot;: &quot;This is expected to be sent back as part of response body: bar12-config_bar2-bar32.&quot;,
+    &quot;files&quot;: {},
+    &quot;form&quot;: {},
+    &quot;headers&quot;: {
+        &quot;x-forwarded-proto&quot;: &quot;https&quot;,
+        &quot;x-forwarded-port&quot;: &quot;443&quot;,
+        &quot;host&quot;: &quot;postman-echo.com&quot;,
+        &quot;x-amzn-trace-id&quot;: &quot;Root=1-631b66d5-560520775c45674e78628820&quot;,
+        &quot;content-length&quot;: &quot;83&quot;,
+        &quot;user-agent&quot;: &quot;HttpRunner/3.1.6&quot;,
+        &quot;accept-encoding&quot;: &quot;gzip, deflate, br&quot;,
+        &quot;accept&quot;: &quot;*/*&quot;,
+        &quot;content-type&quot;: &quot;text/plain&quot;,
+        &quot;hrun-request-id&quot;: &quot;HRUN-512bd1f3-1a25-4fb5-9734-de8edadaa539-181800&quot;,
+        &quot;cookie&quot;: &quot;sails.sid=s%3ArGy_dEIuPGEiwkehNLx5rDYYRAxNfdxq.xyD0enLpd3kR9JyvyD1NIwsNoSlQluQyIewxvw2se7I&quot;
+    },
+    &quot;json&quot;: null,
+    &quot;url&quot;: &quot;https://postman-echo.com/post&quot;
+}
+[0m
+[32m2022-09-10 00:16:22.056[0m | [1mINFO    [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m218[0m - [1mstatus_code: 200, response_time(ms): 254.58 ms, response_length: 0 bytes[0m
+[32m2022-09-10 00:16:22.057[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert status_code equal 200(int)	==&gt; pass[0m
+[32m2022-09-10 00:16:22.057[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.data equal This is expected to be sent back as part of response body: bar12-config_bar2-bar32.(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:22.057[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36m__run_step[0m:[36m304[0m - [1mrun step end: post raw text &lt;&lt;&lt;&lt;&lt;&lt;
+[0m
+[32m2022-09-10 00:16:22.057[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36m__run_step[0m:[36m292[0m - [1mrun step begin: post form data &gt;&gt;&gt;&gt;&gt;&gt;[0m
+[32m2022-09-10 00:16:22.299[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m186[0m - [34m[1mclient IP: 192.168.0.200, Port: 50038[0m
+[32m2022-09-10 00:16:22.299[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m194[0m - [34m[1mserver IP: 34.231.142.5, Port: 443[0m
+[32m2022-09-10 00:16:22.299[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mlog_print[0m:[36m40[0m - [34m[1m
+================== request details ==================
+method   : POST
+url      : https://postman-echo.com/post
+headers  : {
+    &quot;User-Agent&quot;: &quot;HttpRunner/3.1.6&quot;,
+    &quot;Accept-Encoding&quot;: &quot;gzip, deflate, br&quot;,
+    &quot;Accept&quot;: &quot;*/*&quot;,
+    &quot;Connection&quot;: &quot;keep-alive&quot;,
+    &quot;Content-Type&quot;: &quot;application/x-www-form-urlencoded&quot;,
+    &quot;HRUN-Request-ID&quot;: &quot;HRUN-512bd1f3-1a25-4fb5-9734-de8edadaa539-182057&quot;,
+    &quot;Cookie&quot;: &quot;sails.sid=s%3AOEsj556U62otZ2EWvqOITyMkXZGec06l.iH0U1XVyTHpskzKMrvtX4%2FIVaFndgAPdX3TZGNa19BQ&quot;,
+    &quot;Content-Length&quot;: &quot;38&quot;
+}
+cookies  : {
+    &quot;sails.sid&quot;: &quot;s%3AOEsj556U62otZ2EWvqOITyMkXZGec06l.iH0U1XVyTHpskzKMrvtX4%2FIVaFndgAPdX3TZGNa19BQ&quot;
+}
+body     : foo1=config_bar1&amp;foo2=bar23&amp;foo3=bar21
+[0m
+[32m2022-09-10 00:16:22.300[0m | [34m[1mDEBUG   [0m | [36mhttprunner.client[0m:[36mlog_print[0m:[36m40[0m - [34m[1m
+================== response details ==================
+status_code : 200
+headers  : {
+    &quot;Date&quot;: &quot;Fri, 09 Sep 2022 16:16:22 GMT&quot;,
+    &quot;Content-Type&quot;: &quot;application/json; charset=utf-8&quot;,
+    &quot;Content-Length&quot;: &quot;673&quot;,
+    &quot;Connection&quot;: &quot;keep-alive&quot;,
+    &quot;ETag&quot;: &quot;W/\&quot;2a1-fADzJkjmrCYjW1LiDYM4y1ZECEo\&quot;&quot;,
+    &quot;Vary&quot;: &quot;Accept-Encoding&quot;,
+    &quot;set-cookie&quot;: &quot;sails.sid=s%3A3ZQviBIG0pmrKDkAjsx1V8qbMCGE3TDf.De5PmIbBuSXh%2FiQEf2M7%2FKWtwSVirW%2BdRYu%2FgsaNwA8; Path=/; HttpOnly&quot;
+}
+cookies  : {
+    &quot;sails.sid&quot;: &quot;s%3A3ZQviBIG0pmrKDkAjsx1V8qbMCGE3TDf.De5PmIbBuSXh%2FiQEf2M7%2FKWtwSVirW%2BdRYu%2FgsaNwA8&quot;
+}
+encoding : utf-8
+content_type : application/json; charset=utf-8
+body     : {
+    &quot;args&quot;: {},
+    &quot;data&quot;: &quot;&quot;,
+    &quot;files&quot;: {},
+    &quot;form&quot;: {
+        &quot;foo1&quot;: &quot;config_bar1&quot;,
+        &quot;foo2&quot;: &quot;bar23&quot;,
+        &quot;foo3&quot;: &quot;bar21&quot;
+    },
+    &quot;headers&quot;: {
+        &quot;x-forwarded-proto&quot;: &quot;https&quot;,
+        &quot;x-forwarded-port&quot;: &quot;443&quot;,
+        &quot;host&quot;: &quot;postman-echo.com&quot;,
+        &quot;x-amzn-trace-id&quot;: &quot;Root=1-631b66d6-2c701a06417faf1a037d60d3&quot;,
+        &quot;content-length&quot;: &quot;38&quot;,
+        &quot;user-agent&quot;: &quot;HttpRunner/3.1.6&quot;,
+        &quot;accept-encoding&quot;: &quot;gzip, deflate, br&quot;,
+        &quot;accept&quot;: &quot;*/*&quot;,
+        &quot;content-type&quot;: &quot;application/x-www-form-urlencoded&quot;,
+        &quot;hrun-request-id&quot;: &quot;HRUN-512bd1f3-1a25-4fb5-9734-de8edadaa539-182057&quot;,
+        &quot;cookie&quot;: &quot;sails.sid=s%3AOEsj556U62otZ2EWvqOITyMkXZGec06l.iH0U1XVyTHpskzKMrvtX4%2FIVaFndgAPdX3TZGNa19BQ&quot;
+    },
+    &quot;json&quot;: {
+        &quot;foo1&quot;: &quot;config_bar1&quot;,
+        &quot;foo2&quot;: &quot;bar23&quot;,
+        &quot;foo3&quot;: &quot;bar21&quot;
+    },
+    &quot;url&quot;: &quot;https://postman-echo.com/post&quot;
+}
+[0m
+[32m2022-09-10 00:16:22.301[0m | [1mINFO    [0m | [36mhttprunner.client[0m:[36mrequest[0m:[36m218[0m - [1mstatus_code: 200, response_time(ms): 240.94 ms, response_length: 0 bytes[0m
+[32m2022-09-10 00:16:22.301[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert status_code equal 200(int)	==&gt; pass[0m
+[32m2022-09-10 00:16:22.301[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.form.foo1 equal config_bar1(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:22.302[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.form.foo2 equal bar23(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:22.302[0m | [1mINFO    [0m | [36mhttprunner.response[0m:[36mvalidate[0m:[36m249[0m - [1massert body.form.foo3 equal bar21(str)	==&gt; pass[0m
+[32m2022-09-10 00:16:22.302[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36m__run_step[0m:[36m304[0m - [1mrun step end: post form data &lt;&lt;&lt;&lt;&lt;&lt;
+[0m
+[32m2022-09-10 00:16:22.302[0m | [1mINFO    [0m | [36mhttprunner.runner[0m:[36mtest_start[0m:[36m460[0m - [1mgenerate testcase log: /home/zhangpengbo/autotestplatfrom/apitest/httprunner_api_test/logs/512bd1f3-1a25-4fb5-9734-de8edadaa539.run.log[0m
+<br/></div></td></tr></tbody></table></body></html>

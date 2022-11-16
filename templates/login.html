@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" class="app">
+<head>
+    <meta charset="utf-8"/>
+    <title>登陆</title>
+    <meta name="description"
+          content="app, web app, responsive, admin dashboard, admin, flat, flat ui, ui kit, off screen nav"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link rel="stylesheet" href="/static/login/js/jPlayer/jplayer.flat.css" type="text/css"/>
+    <link href="/static/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <!-- Animation Css -->
+    <link href="/static/plugins/animate-css/animate.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/login/css/font-awesome.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/login/css/simple-line-icons.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/login/css/font.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/login/css/app.css" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="/static/login/js/ie/html5shiv.js"></script>
+    <script src="/static/login/js/ie/respond.min.js"></script>
+    <script src="/static/login/js/ie/excanvas.js"></script>
+    <![endif]-->
+</head>
+<body class="bg-info dker">
+<section id="content" class="m-t-lg wrapper-md animated fadeInUp">
+    <div class="container aside-xl">
+        <a class="navbar-brand block" href="/login/"><span class="h1 font-bold">Cypher</span></a>
+        <section class="m-b-lg">
+            <header class="wrapper text-center">
+                <strong>登陆后进入接口自动化测试平台</strong>
+            </header>
+            <div class="form-group">
+                <input id="username" placeholder="输入账号"
+                       class="form-control rounded input-lg text-center no-border">
+            </div>
+            <div class="form-group">
+                <input id="password" type="password" placeholder="输入密码"
+                       class="form-control rounded input-lg text-center no-border">
+            </div>
+            <button id="submit" type="submit" class="btn btn-lg btn-warning lt b-white b-2x btn-block btn-rounded">登陆</button>
+        </section>
+    </div>
+</section>
+<!-- footer -->
+<footer id="footer">
+    <div class="text-center padder">
+        <p>
+            <small>Web app framework base on Bootstrap<br>&copy; 2014</small>
+        </p>
+    </div>
+</footer>
+<!-- / footer -->
+<script src="/static/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap -->
+<script src="/static/plugins/bootstrap/js/bootstrap.js"></script>
+<!-- App -->
+<script src="/static/login/js/app.js"></script>
+<script src="/static/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
+<script src="/static/login/js/app.plugin.js"></script>
+<script type="text/javascript" src="/static/login/js/jPlayer/jquery.jplayer.min.js"></script>
+<script type="text/javascript" src="/static/login/js/jPlayer/add-on/jplayer.playlist.min.js"></script>
+<script src="/static/js/demo.js"></script>
+<script>
+    $("#submit").click(function () {
+        {#通过id获取输入框的值#}
+        var username = $("#username").val();
+        var password = $("#password").val();
+        var data = {
+            username: username,
+            password: password
+        };
+        $.ajax(
+            {
+                type: "post",
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    if (res.msg === "0"){
+                        // 页面跳转
+                        $(window).attr('location', '/index/');
+                    }
+                    else {
+                        alert("登录失败")
+                    }
+
+                },
+                timeout: 3000
+            }
+        )
+    });
+</script>
+</body>
+</html>

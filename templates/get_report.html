@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% load static %}
+    {% csrf_token %}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <title>Cypher</title>
+    <!-- Favicon-->
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+
+    <script charset="utf-8" src="/static/kindeditor/kindeditor-all.js"></script>
+    <script charset="utf-8" src="/static/kindeditor/lang/zh-CN.js"></script>
+    <!-- Google Fonts -->
+    {#    <link href="https://fonts.geekzu.org/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet"#}
+    {#          type="text/css">#}
+    {#    <link href="https://fonts.geekzu.org/icon?family=Material+Icons" rel="stylesheet" type="text/css">#}
+
+    <!-- Bootstrap Core Css -->
+    <link href="/static/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
+
+    <!-- Waves Effect Css -->
+    <link href="/static/plugins/node-waves/waves.css" rel="stylesheet"/>
+
+    <!-- Animation Css -->
+    <link href="/static/plugins/animate-css/animate.css" rel="stylesheet"/>
+
+    <!-- Morris Chart Css-->
+    <link href="/static/plugins/morrisjs/morris.css" rel="stylesheet"/>
+
+    <!-- Custom Css -->
+    <link href="/static/css/style.css" rel="stylesheet">
+
+    <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
+    <link href="/static/css/themes/all-themes.css" rel="stylesheet"/>
+</head>
+
+<body class="theme-red">
+<!-- Page Loader -->
+<div class="page-loader-wrapper">
+    <div class="loader">
+        <div class="preloader">
+            <div class="spinner-layer pl-red">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+        <p>Please wait...</p>
+    </div>
+</div>
+<!-- #END# Page Loader -->
+<!-- Overlay For Sidebars -->
+<div class="overlay"></div>
+<!-- #END# Overlay For Sidebars -->
+<!-- Top Bar -->
+<nav class="navbar">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse"
+               data-target="#navbar-collapse" aria-expanded="false"></a>
+            <a href="javascript:void(0);" class="bars"></a>
+            <a class="navbar-brand" href="index.html">Cypher 接口自动化测试平台</a>
+        </div>
+    </div>
+</nav>
+<!-- #Top Bar -->
+<section>
+    <!-- Left Sidebar -->
+    <aside id="leftsidebar" class="sidebar">
+        <!-- User Info -->
+        <div class="user-info">
+            <div class="image">
+                <img src="/static/images/user.png" width="48" height="48" alt="User"/>
+            </div>
+            <div class="info-container">
+                <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">John Doe</div>
+                <div class="email">john.doe@example.com</div>
+            </div>
+        </div>
+        <!-- #User Info -->
+        <!-- Menu -->
+        <div class="menu">
+            <ul class="list">
+                <li class="active">
+                    <a href="/index">
+                        <span>首页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/add_case">
+                        <span>编写Case</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/add_job">
+                        <span>添加定时执行任务</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/get_report" class="">
+                        <span>查看任务报告</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- #Menu -->
+        <!-- Footer -->
+        <div class="legal">
+            <div class="copyright">
+                &copy; 2016 - 2017 <a href="javascript:void(0);">AdminBSB - Material Design</a>.
+            </div>
+            <div class="version">
+                <b>Version: </b> 1.0.5
+            </div>
+        </div>
+        <!-- #Footer -->
+    </aside>
+    <!-- #END# Left Sidebar -->
+    <!-- Right Sidebar -->
+    <aside id="rightsidebar" class="right-sidebar">
+        <ul class="nav nav-tabs tab-nav-right" role="tablist">
+            <li role="presentation" class="active"><a href="#skins" data-toggle="tab">SKINS</a></li>
+            <li role="presentation"><a href="#settings" data-toggle="tab">SETTINGS</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade in active in active" id="skins">
+                <ul class="demo-choose-skin">
+                    <li data-theme="red" class="active">
+                        <div class="red"></div>
+                        <span>Red</span>
+                    </li>
+                    <li data-theme="pink">
+                        <div class="pink"></div>
+                        <span>Pink</span>
+                    </li>
+                    <li data-theme="purple">
+                        <div class="purple"></div>
+                        <span>Purple</span>
+                    </li>
+                    <li data-theme="deep-purple">
+                        <div class="deep-purple"></div>
+                        <span>Deep Purple</span>
+                    </li>
+                    <li data-theme="indigo">
+                        <div class="indigo"></div>
+                        <span>Indigo</span>
+                    </li>
+                    <li data-theme="blue">
+                        <div class="blue"></div>
+                        <span>Blue</span>
+                    </li>
+                    <li data-theme="light-blue">
+                        <div class="light-blue"></div>
+                        <span>Light Blue</span>
+                    </li>
+                    <li data-theme="cyan">
+                        <div class="cyan"></div>
+                        <span>Cyan</span>
+                    </li>
+                    <li data-theme="teal">
+                        <div class="teal"></div>
+                        <span>Teal</span>
+                    </li>
+                    <li data-theme="green">
+                        <div class="green"></div>
+                        <span>Green</span>
+                    </li>
+                    <li data-theme="light-green">
+                        <div class="light-green"></div>
+                        <span>Light Green</span>
+                    </li>
+                    <li data-theme="lime">
+                        <div class="lime"></div>
+                        <span>Lime</span>
+                    </li>
+                    <li data-theme="yellow">
+                        <div class="yellow"></div>
+                        <span>Yellow</span>
+                    </li>
+                    <li data-theme="amber">
+                        <div class="amber"></div>
+                        <span>Amber</span>
+                    </li>
+                    <li data-theme="orange">
+                        <div class="orange"></div>
+                        <span>Orange</span>
+                    </li>
+                    <li data-theme="deep-orange">
+                        <div class="deep-orange"></div>
+                        <span>Deep Orange</span>
+                    </li>
+                    <li data-theme="brown">
+                        <div class="brown"></div>
+                        <span>Brown</span>
+                    </li>
+                    <li data-theme="grey">
+                        <div class="grey"></div>
+                        <span>Grey</span>
+                    </li>
+                    <li data-theme="blue-grey">
+                        <div class="blue-grey"></div>
+                        <span>Blue Grey</span>
+                    </li>
+                    <li data-theme="black">
+                        <div class="black"></div>
+                        <span>Black</span>
+                    </li>
+                </ul>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="settings">
+                <div class="demo-settings">
+                    <p>GENERAL SETTINGS</p>
+                    <ul class="setting-list">
+                        <li>
+                            <span>Report Panel Usage</span>
+                            <div class="switch">
+                                <label><input type="checkbox" checked><span class="lever"></span></label>
+                            </div>
+                        </li>
+                        <li>
+                            <span>Email Redirect</span>
+                            <div class="switch">
+                                <label><input type="checkbox"><span class="lever"></span></label>
+                            </div>
+                        </li>
+                    </ul>
+                    <p>SYSTEM SETTINGS</p>
+                    <ul class="setting-list">
+                        <li>
+                            <span>Notifications</span>
+                            <div class="switch">
+                                <label><input type="checkbox" checked><span class="lever"></span></label>
+                            </div>
+                        </li>
+                        <li>
+                            <span>Auto Updates</span>
+                            <div class="switch">
+                                <label><input type="checkbox" checked><span class="lever"></span></label>
+                            </div>
+                        </li>
+                    </ul>
+                    <p>ACCOUNT SETTINGS</p>
+                    <ul class="setting-list">
+                        <li>
+                            <span>Offline</span>
+                            <div class="switch">
+                                <label><input type="checkbox"><span class="lever"></span></label>
+                            </div>
+                        </li>
+                        <li>
+                            <span>Location Permission</span>
+                            <div class="switch">
+                                <label><input type="checkbox" checked><span class="lever"></span></label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <!-- #END# Right Sidebar -->
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="block-header">
+            <h2></h2>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="input-group">
+                    <input id="search_content" type="text" class="form-control" placeholder="输入case_id查找报告">
+                    <span class="input-group-btn">
+                    <button id="search_button" class="btn btn-default" type="button">搜索</button>
+                  </span>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div id="search_tips" class="panel panel-danger" style="color: red">搜索后即可展示内容</div>
+                <table class="table table-hover">
+                    <thead style="background-color: #0b75b6">
+                    <th>用例名</th>
+                    <th>时间</th>
+                    <th>结果</th>
+                    </thead>
+                    <tbody id="search_result">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- Jquery Core Js -->
+<script src="/static/plugins/jquery/jquery.min.js"></script>
+
+<!-- Bootstrap Core Js -->
+<script src="/static/plugins/bootstrap/js/bootstrap.js"></script>
+
+<!-- Select Plugin Js -->
+<script src="/static/plugins/bootstrap-select/js/bootstrap-select.js"></script>
+
+<!-- Slimscroll Plugin Js -->
+<script src="/static/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
+
+<!-- Waves Effect Plugin Js -->
+<script src="/static/plugins/node-waves/waves.js"></script>
+
+<!-- Jquery CountTo Plugin Js -->
+<script src="/static/plugins/jquery-countto/jquery.countTo.js"></script>
+
+<!-- Morris Plugin Js -->
+<script src="/static/plugins/raphael/raphael.min.js"></script>
+<script src="/static/plugins/morrisjs/morris.js"></script>
+
+<!-- ChartJs -->
+<script src="/static/plugins/chartjs/Chart.bundle.js"></script>
+
+<!-- Flot Charts Plugin Js -->
+<script src="/static/plugins/flot-charts/jquery.flot.js"></script>
+<script src="/static/plugins/flot-charts/jquery.flot.resize.js"></script>
+<script src="/static/plugins/flot-charts/jquery.flot.pie.js"></script>
+<script src="/static/plugins/flot-charts/jquery.flot.categories.js"></script>
+<script src="/static/plugins/flot-charts/jquery.flot.time.js"></script>
+
+<!-- Sparkline Chart Plugin Js -->
+<script src="/static/plugins/jquery-sparkline/jquery.sparkline.js"></script>
+
+<!-- Custom Js -->
+<script src="/static/js/admin.js"></script>
+<script src="/static/js/pages/index.js"></script>
+
+<!-- Demo Js -->
+<script src="/static/js/demo.js"></script>
+
+<script>
+    $("#search_button").click(function () {
+        $("#search_result").find("*").remove();
+        {#通过id获取输入框的值#}
+        var search_content = $('#search_content').val();
+        var request_data = {
+            "case_name": search_content
+        };
+
+        // 添加job
+        $.ajax(
+            {
+                url: "/search_result/",
+                type: "post",
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify(request_data),
+                success: function (res) {
+                    if (res.status_code === "0") {
+                        $("#search_tips").remove();
+                        for (var case_data in res.case_list) {
+                            var result_data = res.case_list[case_data];
+                            result = `<tr><td>${result_data.case_name}</td><td>${result_data.create_time}</td><td><a href="/get_debug_case_report?result_id=${result_data.result_id}">查看详情</a></td></tr>`;
+                            $("#search_result").append(result)
+                        }
+                    }
+
+                },
+                timeout: 1000
+            }
+        )
+
+    });
+
+    $("#add_job_submit_button").click(function () {
+        {#通过id获取输入框的值#}
+        var add_job_content = $('#add_job_content').val();
+        var request_data = {
+            "case_id": add_job_content
+        };
+        // 添加job
+        $.ajax(
+            {
+                url: "/search_result",
+                type: "post",
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify(request_data),
+                success: function (res) {
+                    if (res.status_code === "0") {
+                        alert("添加成功！")
+                    }
+
+                },
+                timeout: 1000
+            }
+        )
+
+    });
+
+</script>
+
+
+</body>
+
+</html>
