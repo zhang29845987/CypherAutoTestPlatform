@@ -78,7 +78,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PROT': '3306',
         'USER': 'root',
-        'PASSWORD': 'mysql',
+        'PASSWORD': '29845987',
         'NAME': 'apitest',
     }
 }
@@ -119,7 +119,7 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-# STATIC_ROOT = os.path.join(BASE_DIR, "/static/")
+STATIC_ROOT = os.path.join(BASE_DIR, "/static/")
 
 STATICFILES_DIRS = [
     # 不要加/文件夹/ 不要加斜杠

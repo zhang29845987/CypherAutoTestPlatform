@@ -410,7 +410,7 @@
                         alert("运行结果id:" + res.result_id)
                         {#//模拟表单post提交，并打开新窗口#}
                         {#formpost("http://127.0.0.1/get_debug_case_report/", {'result_id': res.result_id});#}
-                         var tempwindow=window.open("http://127.0.0.1:8000/get_debug_case_report/?result_id="+res.result_id);
+                         var tempwindow=window.open("/get_debug_case_report/?result_id="+res.result_id);
                     } else {
                         var error_msg = JSON.stringify(res);
                         alert("运行失败：" + error_msg)
